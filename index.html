@@ -1,0 +1,139 @@
+<!DOCTYPE HTML>
+<html>
+  <!--
+    Simple HTML5 metronome for latina dance
+    author: Capelli Carlo
+    license: MIT
+  -->
+  <head>
+    <meta charset="utf-8">
+    <title>Latina Metronome</title>
+    <script src='https://cdn.jsdelivr.net/gh/keithwhor/audiosynth/audiosynth.js'></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.min.css" />
+    <link rel="stylesheet" href="switch-w3schools.css" />
+  </head>
+  <body>
+    <div class=row>
+      <div class=column>
+        <select id=dance_kind>
+          <option value=0>Bachata</option>
+          <option value=1>Salsa</option>
+        </select>
+      </div>
+      <div class=column>
+        <select id=instrument>
+          <option value=piano>Piano</option>
+            <option value=organ>Organ</option>
+          <option value=acoustic selected>Acoustic Guitar</option>
+          <option value=edm>Edm</option>
+        </select>
+      </div>
+    <div class=column>
+        Play
+        <label class=switch>
+          <input id=play type=checkbox>
+          <span class='slider round'></span>
+        </label>
+      </div>
+    </div>
+
+    <div class=row>
+      <div class=column>
+        <input type=range id=bpm min=80 max=250 step=10>
+      </div>
+
+      <div class=column>
+        BPM:
+      </div>
+
+      <div class=column>
+        <input type=number id=bpm_show size=1>
+      </div>
+
+      <!-- <span class=column id=bpm_show></span> -->
+    </div>
+  </body>
+
+  <script>
+    const all_choices = [dance_kind, bpm, instrument]
+
+    window.onload = function() {
+      for (const e of all_choices) {
+        e.onchange = save_user_choices
+        
+        let c = localStorage.getItem(e.id)
+        if (c !== null)
+          e.value = c
+      }
+      bpm_show.value = bpm.value
+    }
+    
+    bpm.onchange = function() {
+      bpm_show.value = bpm.value
+    }
+    bpm.oninput = function() {
+      bpm_show.value = bpm.value
+    }
+
+    bpm_show.onchange = function() {
+      var v = bpm_show.value, min = parseInt(bpm.min), max = parseInt(bpm.max)
+      if (v < min) {
+        alert(`too low (min is ${min})`)
+        bpm_show.value = v = min
+      }
+      if (v > max) {
+        alert(`too much (max is ${max})`)
+        bpm_show.value = v = max
+      }
+      bpm.value = v
+      save_user_choices()
+    }
+
+    function save_user_choices() {
+      for (const e of all_choices)
+        localStorage.setItem(e.id, e.value)
+    }
+
+    const tempo_bpm_ms = () => 1000 * 60 / bpm.value
+    const instr = () => Synth.createInstrument(instrument.value)
+
+    function sound_if_enabled() {
+      if (play.checked)
+        setTimeout(play_beats, tempo_bpm_ms())
+    }
+    const sounds = [
+      [ ['E', 3],
+        ['A', 3],
+        ['A', 3],
+        ['A', 3],
+        ['F', 3],
+        ['A', 3],
+        ['A', 3],
+        ['A', 3],
+      ],
+      [ ['E', 2],
+        ['A', 3],
+        ['A', 3],
+        ['A', 3],
+        ['G', 2],
+        ['A', 3],
+        ['A', 3],
+        ['A', 3],
+      ],
+    ]
+    var beat = 0
+    function play_beats() {
+      const seq = sounds[dance_kind.value]
+      const N = seq[beat]
+      beat = (beat + 1) % seq.length
+      instr().play(N[0], N[1], tempo_bpm_ms() / 2000)
+      sound_if_enabled()
+    }
+    play.onchange = function() {
+      beat = 0
+      sound_if_enabled()
+    }
+    
+  </script>
+
+</html>
